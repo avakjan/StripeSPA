@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inventory Admin</title>
+  </head>
+  <body>
+    <h1>Inventory Admin</h1>
+    <div>
+      <label>Admin Key <input id="adminKey" type="password" placeholder="optional if not set"></label>
+      <button id="reload">Reload Products</button>
+    </div>
+    <div id="status"></div>
+    <table id="table" border="1" cellpadding="6">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Price ID</th>
+          <th>Stock</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script>
+      async function load() {
+        const status = document.getElementById('status');
+        status.textContent = 'Loading products...';
+        try {
+          const res = await fetch('/products');
+          if (!res.ok) throw new Error('Failed to fetch /products');
+          const data = await res.json();
+          const tbody = document.querySelector('#table tbody');
+          tbody.innerHTML = '';
+          (data.products || []).forEach(p => {
+            const tr = document.createElement('tr');
+            const priceLabel = (p.unitAmount / 100).toFixed(2) + ' ' + p.currency.toUpperCase();
+            tr.innerHTML = `
+              <td>${p.name || ''}</td>
+              <td>${priceLabel}</td>
+              <td><code>${p.priceId}</code></td>
+              <td><input type="number" min="0" value="${p.stock || 0}" data-price-id="${p.priceId}" class="stock-input"></td>
+              <td><button class="update">Save</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          status.textContent = 'Failed to load products.';
+          return;
+        }
+        status.textContent = '';
+        document.querySelectorAll('.update').forEach((btn, idx) => {
+          btn.addEventListener('click', async (e) => {
+            const row = e.target.closest('tr');
+            const input = row.querySelector('.stock-input');
+            const priceId = input.getAttribute('data-price-id');
+            const stock = Number(input.value) || 0;
+            const adminKey = document.getElementById('adminKey').value || '';
+            const res = await fetch('/admin/inventory', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+              body: JSON.stringify({ priceId, stock })
+            });
+            if (!res.ok) {
+              const txt = await res.text();
+              alert('Failed: ' + txt);
+              return;
+            }
+            alert('Saved');
+            load();
+          });
+        });
+      }
+
+      document.getElementById('reload').addEventListener('click', load);
+      load();
+    </script>
+  </body>
+</html>
+
+

@@ -1,0 +1,16 @@
+# Environment and secrets
+.env
+.env.*
+
+# Local database
+data.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# OS
+Thumbs.db
+*.DS_Store
+
