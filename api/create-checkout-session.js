@@ -1,11 +1,17 @@
 const Stripe = require('stripe');
 const crypto = require('crypto');
-const { ensureInit, reserveStock, linkReservationToSession } = require('../lib/db');
+const { ensureInit, reserveStock, linkReservationToSession, rateLimit } = require('../lib/db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
   try {
     await ensureInit();
+    // Simple per-IP rate limit: 10 requests per 60s
+    const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const rl = await rateLimit({ key: `create-session:${ip}`, capacity: 10, refillTokens: 10, refillIntervalMs: 60_000 });
+    if (!rl.allowed) {
+      return res.status(429).send('Too Many Requests');
+    }
     const { line_items } = req.body;
     if (!Array.isArray(line_items) || line_items.length === 0) {
       return res.status(400).send('No line items provided');

@@ -1,9 +1,13 @@
-const { ensureInit, getStocksMap } = require('../lib/db');
+const { ensureInit, getStocksMap, rateLimit } = require('../lib/db');
 const Stripe = require('stripe');
 
 module.exports = async (req, res) => {
   try {
     await ensureInit();
+    // 60 req/min per IP
+    const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const rl = await rateLimit({ key: `products:${ip}`, capacity: 60, refillTokens: 60, refillIntervalMs: 60_000 });
+    if (!rl.allowed) return res.status(429).send('Too Many Requests');
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const prices = await stripe.prices.list({ active: true, expand: ['data.product'] });
     const filtered = prices.data.filter(p => p.active && p.product && p.unit_amount != null);

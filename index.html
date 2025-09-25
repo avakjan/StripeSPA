@@ -76,9 +76,16 @@
         }
         cart.forEach(item => {
           const li = document.createElement('li');
-          li.innerHTML =
-            item.name +
-            ' <button data-price="' + item.price + '" class="remove-item">Remove</button>';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = item.name;
+          const space = document.createTextNode(' ');
+          const btn = document.createElement('button');
+          btn.className = 'remove-item';
+          btn.setAttribute('data-price', item.price);
+          btn.textContent = 'Remove';
+          li.appendChild(nameSpan);
+          li.appendChild(space);
+          li.appendChild(btn);
           itemsEl.appendChild(li);
         });
         attachCartListeners();
@@ -113,12 +120,20 @@
             div.setAttribute('data-price-id', p.priceId);
             div.setAttribute('data-name', p.name || 'Item');
             const priceLabel = (p.unitAmount / 100).toFixed(2) + ' ' + p.currency.toUpperCase();
-            const disabled = p.stock <= 0 ? ' disabled' : '';
             const stockLabel = ' (' + (p.stock || 0) + ' left)';
-            div.innerHTML =
-              '<p>' + (p.name || 'Item') + ' - ' + priceLabel + stockLabel + '</p>' +
-              (p.description ? '<p>' + p.description + '</p>' : '') +
-              '<button class="add-to-cart"' + disabled + '>Add to Cart</button>';
+            const title = document.createElement('p');
+            title.textContent = (p.name || 'Item') + ' - ' + priceLabel + stockLabel;
+            div.appendChild(title);
+            if (p.description) {
+              const desc = document.createElement('p');
+              desc.textContent = p.description;
+              div.appendChild(desc);
+            }
+            const btn = document.createElement('button');
+            btn.className = 'add-to-cart';
+            btn.textContent = 'Add to Cart';
+            if ((p.stock || 0) <= 0) btn.disabled = true;
+            div.appendChild(btn);
             container.appendChild(div);
           });
           // Wire add-to-cart buttons

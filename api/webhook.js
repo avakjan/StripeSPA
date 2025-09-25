@@ -1,6 +1,6 @@
 const Stripe = require('stripe');
 const getRawBody = require('raw-body');
-const { ensureInit, commitReservationBySession, releaseReservation, linkReservationToSession, findReservedReservationIdBySession } = require('../lib/db');
+const { ensureInit, commitReservationBySession, releaseReservation, linkReservationToSession, findReservedReservationIdBySession, rateLimit } = require('../lib/db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -9,6 +9,10 @@ module.exports = async (req, res) => {
   let event;
   try {
     await ensureInit();
+    // 300 req/min per IP (Stripe should hit from a few IPs)
+    const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const rl = await rateLimit({ key: `webhook:${ip}`, capacity: 300, refillTokens: 300, refillIntervalMs: 60_000 });
+    if (!rl.allowed) return res.status(429).send('Too Many Requests');
     const body = await getRawBody(req);
     if (endpointSecret) {
       const signature = req.headers['stripe-signature'];

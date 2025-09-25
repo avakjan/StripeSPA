@@ -4,6 +4,16 @@
     { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
     { "source": "/admin/inventory", "destination": "/api/admin-inventory" },
     { "source": "/webhook", "destination": "/api/webhook" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
+      ]
+    }
   ]
 }
 
