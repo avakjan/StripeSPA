@@ -12,6 +12,8 @@ ADMIN_PASS=change-me
 ADMIN_KEY=your-secret-admin-key
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 PORT=4242
+DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DBNAME
+DATABASE_SSL=true
 ```
 - Start: `npm start`
 - Admin UI: `http://localhost:4242/admin.html` (Basic Auth + optional `x-admin-key` for inventory writes)
@@ -24,8 +26,8 @@ PORT=4242
 - Secrets in code:
   - No secrets should be hardcoded in source. All keys come from `.env`.
   - `.env` is gitignored via `.gitignore`.
-- Local data:
-  - SQLite DB file `data.db` is in `.gitignore`.
+- Database:
+  - Managed Postgres via `DATABASE_URL` (Neon/Supabase/Render/Railway). The server creates tables on boot.
 - Admin UI:
   - Protect `admin.html` with `ADMIN_USER`/`ADMIN_PASS` (basic auth). Keep strong values in `.env`.
   - Inventory writes require `x-admin-key` matching `ADMIN_KEY`.
