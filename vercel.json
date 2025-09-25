@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/products", "destination": "/api/products" },
+    { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
+    { "source": "/admin/inventory", "destination": "/api/admin-inventory" },
+    { "source": "/webhook", "destination": "/api/webhook" }
+  ]
+}
+
+
