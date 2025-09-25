@@ -1,6 +1,6 @@
 const Stripe = require('stripe');
 const getRawBody = require('raw-body');
-const { commitReservationBySession, releaseReservation, linkReservationToSession, findReservedReservationIdBySession } = require('../lib/db');
+const { ensureInit, commitReservationBySession, releaseReservation, linkReservationToSession, findReservedReservationIdBySession } = require('../lib/db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -8,6 +8,7 @@ module.exports = async (req, res) => {
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
   let event;
   try {
+    await ensureInit();
     const body = await getRawBody(req);
     if (endpointSecret) {
       const signature = req.headers['stripe-signature'];

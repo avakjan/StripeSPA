@@ -1,10 +1,11 @@
 const Stripe = require('stripe');
 const crypto = require('crypto');
-const { reserveStock, linkReservationToSession } = require('../lib/db');
+const { ensureInit, reserveStock, linkReservationToSession } = require('../lib/db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
   try {
+    await ensureInit();
     const { line_items } = req.body;
     if (!Array.isArray(line_items) || line_items.length === 0) {
       return res.status(400).send('No line items provided');

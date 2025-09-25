@@ -1,8 +1,9 @@
-const { getStocksMap } = require('../lib/db');
+const { ensureInit, getStocksMap } = require('../lib/db');
 const Stripe = require('stripe');
 
 module.exports = async (req, res) => {
   try {
+    await ensureInit();
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const prices = await stripe.prices.list({ active: true, expand: ['data.product'] });
     const filtered = prices.data.filter(p => p.active && p.product && p.unit_amount != null);

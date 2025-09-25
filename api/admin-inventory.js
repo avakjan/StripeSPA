@@ -1,8 +1,9 @@
-const { upsertInventory } = require('../lib/db');
+const { ensureInit, upsertInventory } = require('../lib/db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
   try {
+    await ensureInit();
     const adminKey = process.env.ADMIN_KEY;
     if (adminKey && req.headers['x-admin-key'] !== adminKey) {
       return res.status(403).send('Forbidden');
